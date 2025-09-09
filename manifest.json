@@ -1,0 +1,12 @@
+{
+  "manifest_version": 3,
+  "version": "0.1.0",
+  "name": "Reading List Auto Summary",
+  "description": "Automatically mark old entries as read in Chrome Reading List and generate AI-powered summaries before archiving.",
+  "options_page": "src/frontend/options/options.html",
+  "background": {
+    "service_worker": "src/backend/background.js",
+    "type": "module"
+  },
+  "permissions": ["storage", "readingList"]
+}
