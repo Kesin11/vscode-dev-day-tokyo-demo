@@ -40,7 +40,7 @@ Slack投稿のフォーマットは以下です。
 
 ----
 
-ここまでにまとめた仕様の詳細をissueにしてもらえますか？
+ここまでにまとめた仕様の詳細をKesin11/vscode-dev-day-tokyo-demoリポジトリのissueとして作成してもらえますか？
 
 ## sub-issueの作成
 (最初に作ったissueの画面を開いてCopilotのチャットを改めて開き、issueをアタッチした状態で、)
