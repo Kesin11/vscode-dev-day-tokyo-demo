@@ -10,26 +10,24 @@ async function getReadingListEntries(): Promise<
   chrome.readingList.ReadingListEntry[]
 > {
   try {
-    console.log("リーディングリストエントリの取得を開始します...");
+    console.debug("リーディングリストエントリの取得を開始します...");
 
     // Chrome Reading List API を使用してエントリを取得
     const entries = await chrome.readingList.query({});
 
-    console.log(
+    console.debug(
       `リーディングリストから ${entries.length} 件のエントリを取得しました`,
     );
 
-    // 各エントリの詳細をログ出力
-    entries.forEach(
-      (entry: chrome.readingList.ReadingListEntry, index: number) => {
-        console.log(`エントリ ${index + 1}:`, {
-          title: entry.title,
-          url: entry.url,
-          hasBeenRead: entry.hasBeenRead,
-          creationTime: new Date(entry.creationTime).toISOString(),
-          lastUpdateTime: new Date(entry.lastUpdateTime).toISOString(),
-        });
-      },
+    // 各エントリの詳細をテーブル形式でログ出力
+    console.table(
+      entries.map((entry: chrome.readingList.ReadingListEntry) => ({
+        title: entry.title,
+        url: entry.url,
+        hasBeenRead: entry.hasBeenRead,
+        creationTime: new Date(entry.creationTime).toISOString(),
+        lastUpdateTime: new Date(entry.lastUpdateTime).toISOString(),
+      })),
     );
 
     return entries;
@@ -44,7 +42,7 @@ async function getReadingListEntries(): Promise<
  */
 function initializeExtension(): void {
   chrome.runtime.onStartup.addListener(async () => {
-    console.log("Reading List Auto Summary エクステンションが起動しました");
+    console.debug("Reading List Auto Summary エクステンションが起動しました");
     try {
       await getReadingListEntries();
     } catch (error) {
@@ -56,7 +54,7 @@ function initializeExtension(): void {
    * エクステンションインストール時の処理
    */
   chrome.runtime.onInstalled.addListener(async () => {
-    console.log(
+    console.debug(
       "Reading List Auto Summary エクステンションがインストールされました",
     );
     try {
