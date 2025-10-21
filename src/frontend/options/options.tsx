@@ -1,5 +1,5 @@
 import type React from "react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useId, useState } from "react";
 
 interface Settings {
   daysUntilRead: number;
@@ -10,6 +10,8 @@ interface Settings {
  * オプションページのメインコンポーネント
  */
 export function OptionsPage(): React.ReactElement {
+  const readInputId = useId();
+  const deleteInputId = useId();
   const [settings, setSettings] = useState<Settings>({
     daysUntilRead: 30,
     daysUntilDelete: 60,
@@ -17,15 +19,10 @@ export function OptionsPage(): React.ReactElement {
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<string>("");
 
-  // コンポーネントマウント時に設定を読み込む
-  useEffect(() => {
-    loadSettings();
-  }, []);
-
   /**
    * storage.localから設定を読み込む関数
    */
-  const loadSettings = async (): Promise<void> => {
+  const loadSettings = useCallback(async (): Promise<void> => {
     try {
       const result = await chrome.storage.local.get([
         "daysUntilRead",
@@ -39,7 +36,12 @@ export function OptionsPage(): React.ReactElement {
     } catch (error) {
       console.error("設定の読み込みに失敗しました:", error);
     }
-  };
+  }, []);
+
+  // コンポーネントマウント時に設定を読み込む
+  useEffect(() => {
+    void loadSettings();
+  }, [loadSettings]);
 
   /**
    * 設定を保存する関数
@@ -81,12 +83,12 @@ export function OptionsPage(): React.ReactElement {
         <h2 style={styles.sectionTitle}>リーディングリスト管理設定</h2>
 
         <div style={styles.settingItem}>
-          <label style={styles.label} htmlFor="daysUntilRead">
+          <label style={styles.label} htmlFor={readInputId}>
             既読化までの日数 (デフォルト: 30日)
           </label>
           <div style={styles.inputGroup}>
             <input
-              id="daysUntilRead"
+              id={readInputId}
               type="number"
               min="1"
               max="365"
@@ -107,12 +109,12 @@ export function OptionsPage(): React.ReactElement {
         </div>
 
         <div style={styles.settingItem}>
-          <label style={styles.label} htmlFor="daysUntilDelete">
+          <label style={styles.label} htmlFor={deleteInputId}>
             削除までの日数 (デフォルト: 60日)
           </label>
           <div style={styles.inputGroup}>
             <input
-              id="daysUntilDelete"
+              id={deleteInputId}
               type="number"
               min="1"
               max="365"

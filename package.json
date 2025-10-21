@@ -18,11 +18,17 @@
   },
   "author": "kesin1202000@gmail.com",
   "license": "Apache-2.0",
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
   "devDependencies": {
     "@biomejs/biome": "^2.2.2",
     "@tailwindcss/vite": "^4.1.12",
     "@types/chrome": "^0.1.9",
     "@types/node": "^24.3.0",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
     "@vitest/coverage-v8": "^3.2.4",
     "jsdom": "^26.1.0",
     "tailwindcss": "^4.1.12",
