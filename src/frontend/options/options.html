@@ -6,7 +6,72 @@
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this extension.</noscript>
-    <div id="root"></div>
+    <div id="root">
+      <div class="max-w-2xl mx-auto p-8 font-sans">
+        <h1 class="text-3xl font-bold mb-8 text-gray-800">
+          Reading List Auto Summary 設定
+        </h1>
+
+        <div class="space-y-6">
+          <!-- 既読化までの日数設定 -->
+          <div class="border border-gray-300 rounded-lg p-6 bg-white shadow-sm">
+            <label for="daysUntilRead" class="block text-lg font-semibold text-gray-700 mb-2">
+              既読化までの日数
+            </label>
+            <p class="text-gray-600 text-sm mb-4">
+              この日数を経過したエントリを既読化します（デフォルト: 30日）
+            </p>
+            <input
+              id="daysUntilRead"
+              type="number"
+              min="1"
+              max="365"
+              class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <!-- 削除までの日数設定 -->
+          <div class="border border-gray-300 rounded-lg p-6 bg-white shadow-sm">
+            <label for="daysUntilDelete" class="block text-lg font-semibold text-gray-700 mb-2">
+              削除までの日数
+            </label>
+            <p class="text-gray-600 text-sm mb-4">
+              この日数を経過したエントリを削除します（デフォルト: 60日）
+            </p>
+            <input
+              id="daysUntilDelete"
+              type="number"
+              min="1"
+              max="365"
+              class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <!-- 注意書き -->
+          <div class="border border-orange-300 rounded-lg p-4 bg-orange-50">
+            <p class="text-sm text-gray-700">
+              <span class="font-semibold">注意:</span> 削除までの日数は、既読化までの日数より長く設定することをお勧めします。
+            </p>
+          </div>
+
+          <!-- 保存ボタン -->
+          <div class="flex gap-4">
+            <button
+              id="saveButton"
+              type="button"
+              class="px-6 py-2 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 transition-colors"
+            >
+              保存
+            </button>
+          </div>
+
+          <!-- 保存完了メッセージ -->
+          <div id="savedMessage" class="border border-green-300 rounded-lg p-4 bg-green-50" style="display: none;">
+            <p class="text-green-700 font-semibold">設定を保存しました</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="/src/frontend/options/options.tsx"></script>
   </body>
-  <!-- <script type="module" src="/src/frontend/options/options.tsx"></script> -->
 </html>
