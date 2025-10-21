@@ -6,7 +6,7 @@
  * Reading List エントリを取得する関数
  * @returns Promise<chrome.readingList.ReadingListEntry[]> リーディングリストのエントリ一覧
  */
-async function getReadingListEntries(): Promise<
+export async function getReadingListEntries(): Promise<
   chrome.readingList.ReadingListEntry[]
 > {
   try {
@@ -40,7 +40,7 @@ async function getReadingListEntries(): Promise<
 /**
  * エクステンション起動時の初期化処理
  */
-function initializeExtension(): void {
+export function initializeExtension(): void {
   chrome.runtime.onStartup.addListener(async () => {
     console.debug("Reading List Auto Summary エクステンションが起動しました");
     try {
@@ -72,6 +72,3 @@ function initializeExtension(): void {
 if (typeof chrome !== "undefined" && chrome.runtime) {
   initializeExtension();
 }
-
-// エクスポート（テスト用）
-export { getReadingListEntries, initializeExtension };
