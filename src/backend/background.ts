@@ -1,7 +1,5 @@
 // Chrome Extension Background Script for Reading List Management
 
-/// <reference types="chrome" />
-
 /**
  * Reading List エントリを取得する関数
  * @returns Promise<chrome.readingList.ReadingListEntry[]> リーディングリストのエントリ一覧
