@@ -1,4 +1,5 @@
 # ReadingListAutoSummary AI Coding Guide
+**Always respond in Japanese**.
 
 ## Project Overview
 This is a Chrome extension (Manifest V3) that automatically manages Chrome's Reading List by marking old entries as read and generating AI-powered summaries before archiving. The extension uses `chrome.readingList` API for Reading List integration and posts summaries to Slack.
