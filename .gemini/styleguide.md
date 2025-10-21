@@ -41,7 +41,7 @@ pnpm check:ai         # Full validation pipeline (type-check + lint + test + bui
 - **Permissions**: `["storage", "readingList"]` in `manifest.json`
 - **Storage**: Uses `chrome.storage.local` for settings persistence
 - **Background**: Service worker runs periodically to process Reading List entries
-- **No dependencies**: The project has zero runtime dependencies (only devDependencies)
+- **Runtime Dependencies**: React, React-DOM for UI; Firecrawl and OpenAI SDKs for content extraction and summarization
 
 ### Data Flow Pattern
 1. Background script queries `chrome.readingList` API
