@@ -6,6 +6,11 @@ interface Settings {
   daysUntilDelete: number;
 }
 
+interface SaveMessage {
+  text: string;
+  type: "success" | "error";
+}
+
 /**
  * オプションページのメインコンポーネント
  */
@@ -17,7 +22,7 @@ export function OptionsPage(): React.ReactElement {
     daysUntilDelete: 60,
   });
   const [isSaving, setIsSaving] = useState(false);
-  const [saveMessage, setSaveMessage] = useState<string>("");
+  const [saveMessage, setSaveMessage] = useState<SaveMessage | null>(null);
 
   /**
    * storage.localから設定を読み込む関数
@@ -47,6 +52,19 @@ export function OptionsPage(): React.ReactElement {
    * 設定を保存する関数
    */
   const saveSettings = async (): Promise<void> => {
+    // NaN チェック
+    if (
+      Number.isNaN(settings.daysUntilRead) ||
+      Number.isNaN(settings.daysUntilDelete)
+    ) {
+      setSaveMessage({
+        text: "エラー: 日数には1から365の数値を入力してください。",
+        type: "error",
+      });
+      setTimeout(() => setSaveMessage(null), 3000);
+      return;
+    }
+
     setIsSaving(true);
 
     try {
@@ -55,11 +73,14 @@ export function OptionsPage(): React.ReactElement {
         daysUntilDelete: settings.daysUntilDelete,
       });
 
-      setSaveMessage("設定を保存しました");
-      setTimeout(() => setSaveMessage(""), 3000);
+      setSaveMessage({ text: "設定を保存しました", type: "success" });
+      setTimeout(() => setSaveMessage(null), 3000);
     } catch (error) {
       console.error("設定の保存に失敗しました:", error);
-      setSaveMessage("設定の保存に失敗しました");
+      setSaveMessage({
+        text: "設定の保存に失敗しました",
+        type: "error",
+      });
     } finally {
       setIsSaving(false);
     }
@@ -149,7 +170,17 @@ export function OptionsPage(): React.ReactElement {
         </button>
       </div>
 
-      {saveMessage && <p style={styles.message}>{saveMessage}</p>}
+      {saveMessage && (
+        <p
+          style={
+            saveMessage.type === "success"
+              ? styles.messageSuccess
+              : styles.messageError
+          }
+        >
+          {saveMessage.text}
+        </p>
+      )}
     </div>
   );
 }
@@ -211,7 +242,6 @@ const styles: Record<string, React.CSSProperties> = {
   description: {
     fontSize: "12px",
     color: "#666",
-    marginTop: "6px",
     margin: "6px 0 0 0",
   },
   buttonGroup: {
@@ -235,11 +265,20 @@ const styles: Record<string, React.CSSProperties> = {
     cursor: "not-allowed",
     opacity: 0.6,
   },
-  message: {
+  messageSuccess: {
     marginTop: "15px",
     padding: "10px 15px",
     backgroundColor: "#d4edda",
     color: "#155724",
+    borderRadius: "4px",
+    fontSize: "14px",
+    textAlign: "center",
+  },
+  messageError: {
+    marginTop: "15px",
+    padding: "10px 15px",
+    backgroundColor: "#f8d7da",
+    color: "#721c24",
     borderRadius: "4px",
     fontSize: "14px",
     textAlign: "center",

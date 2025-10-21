@@ -173,11 +173,10 @@ describe("Background", () => {
   describe("markReadingListEntriesAsRead", () => {
     it("正常系: 指定日数以上のエントリを既読化できる", async () => {
       // モックの設定
-      mockChrome.readingList.query.mockResolvedValue(sampleEntries);
       mockChrome.readingList.updateEntry.mockResolvedValue(undefined);
 
       // テスト実行: 30日以上のエントリを既読化
-      await markReadingListEntriesAsRead(30);
+      await markReadingListEntriesAsRead(30, sampleEntries);
 
       // 検証: 35日前と65日前のエントリが既読化される (未読のみ)
       // sampleEntries[2]は35日前で未読
@@ -195,11 +194,10 @@ describe("Background", () => {
 
     it("正常系: 既読済みのエントリは既読化対象外", async () => {
       // モックの設定
-      mockChrome.readingList.query.mockResolvedValue(sampleEntries);
       mockChrome.readingList.updateEntry.mockResolvedValue(undefined);
 
       // テスト実行: 1日以上のエントリを既読化
-      await markReadingListEntriesAsRead(1);
+      await markReadingListEntriesAsRead(1, sampleEntries);
 
       // 検証: 既読済みのエントリ(sampleEntries[1])は呼ばれない
       expect(mockChrome.readingList.updateEntry).toHaveBeenCalledTimes(3);
@@ -211,11 +209,10 @@ describe("Background", () => {
 
     it("正常系: 条件に合わないエントリは既読化されない", async () => {
       // モックの設定
-      mockChrome.readingList.query.mockResolvedValue(sampleEntries);
       mockChrome.readingList.updateEntry.mockResolvedValue(undefined);
 
       // テスト実行: 100日以上のエントリを既読化
-      await markReadingListEntriesAsRead(100);
+      await markReadingListEntriesAsRead(100, sampleEntries);
 
       // 検証: 呼ばれない
       expect(mockChrome.readingList.updateEntry).not.toHaveBeenCalled();
@@ -223,27 +220,27 @@ describe("Background", () => {
 
     it("異常系: updateEntry API呼び出しが失敗しても他のエントリは処理される", async () => {
       // モックの設定
-      mockChrome.readingList.query.mockResolvedValue(sampleEntries);
       mockChrome.readingList.updateEntry
         .mockRejectedValueOnce(new Error("Update error"))
         .mockResolvedValueOnce(undefined);
 
       // テスト実行: エラーハンドリング後も処理が続行される
-      await expect(markReadingListEntriesAsRead(30)).resolves.not.toThrow();
+      await expect(
+        markReadingListEntriesAsRead(30, sampleEntries),
+      ).resolves.not.toThrow();
 
       // 検証: 複数回呼ばれる
-      expect(mockChrome.readingList.updateEntry).toHaveBeenCalled();
+      expect(mockChrome.readingList.updateEntry).toHaveBeenCalledTimes(2);
     });
   });
 
   describe("deleteReadingListEntries", () => {
     it("正常系: 指定日数以上のエントリを削除できる", async () => {
       // モックの設定
-      mockChrome.readingList.query.mockResolvedValue(sampleEntries);
       mockChrome.readingList.removeEntry.mockResolvedValue(undefined);
 
       // テスト実行: 60日以上のエントリを削除
-      await deleteReadingListEntries(60);
+      await deleteReadingListEntries(60, sampleEntries);
 
       // 検証: 65日前のエントリが削除される
       expect(mockChrome.readingList.removeEntry).toHaveBeenCalledWith({
@@ -254,11 +251,10 @@ describe("Background", () => {
 
     it("正常系: 条件に合わないエントリは削除されない", async () => {
       // モックの設定
-      mockChrome.readingList.query.mockResolvedValue(sampleEntries);
       mockChrome.readingList.removeEntry.mockResolvedValue(undefined);
 
       // テスト実行: 100日以上のエントリを削除
-      await deleteReadingListEntries(100);
+      await deleteReadingListEntries(100, sampleEntries);
 
       // 検証: 呼ばれない
       expect(mockChrome.readingList.removeEntry).not.toHaveBeenCalled();
@@ -266,16 +262,17 @@ describe("Background", () => {
 
     it("異常系: removeEntry API呼び出しが失敗しても他のエントリは処理される", async () => {
       // モックの設定
-      mockChrome.readingList.query.mockResolvedValue(sampleEntries);
       mockChrome.readingList.removeEntry
         .mockRejectedValueOnce(new Error("Remove error"))
         .mockResolvedValueOnce(undefined);
 
       // テスト実行: エラーハンドリング後も処理が続行される
-      await expect(deleteReadingListEntries(30)).resolves.not.toThrow();
+      await expect(
+        deleteReadingListEntries(30, sampleEntries),
+      ).resolves.not.toThrow();
 
       // 検証: 複数回呼ばれる
-      expect(mockChrome.readingList.removeEntry).toHaveBeenCalled();
+      expect(mockChrome.readingList.removeEntry).toHaveBeenCalledTimes(2);
     });
   });
 

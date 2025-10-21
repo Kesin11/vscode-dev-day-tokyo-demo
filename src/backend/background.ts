@@ -62,16 +62,16 @@ export async function getStorageSettings(): Promise<{
  */
 export async function markReadingListEntriesAsRead(
   daysThreshold: number,
+  entries: chrome.readingList.ReadingListEntry[],
 ): Promise<void> {
   try {
     console.debug(`${daysThreshold}日以上前のエントリを既読化します`);
 
-    const entries = await getReadingListEntries();
     const now = Date.now();
     const thresholdTime = now - daysThreshold * 24 * 60 * 60 * 1000;
 
     for (const entry of entries) {
-      if (!entry.hasBeenRead && entry.creationTime < thresholdTime) {
+      if (!entry.hasBeenRead && entry.creationTime <= thresholdTime) {
         try {
           await chrome.readingList.updateEntry({
             url: entry.url,
@@ -96,16 +96,16 @@ export async function markReadingListEntriesAsRead(
  */
 export async function deleteReadingListEntries(
   daysThreshold: number,
+  entries: chrome.readingList.ReadingListEntry[],
 ): Promise<void> {
   try {
     console.debug(`${daysThreshold}日以上前のエントリを削除します`);
 
-    const entries = await getReadingListEntries();
     const now = Date.now();
     const thresholdTime = now - daysThreshold * 24 * 60 * 60 * 1000;
 
     for (const entry of entries) {
-      if (entry.creationTime < thresholdTime) {
+      if (entry.creationTime <= thresholdTime) {
         try {
           await chrome.readingList.removeEntry({
             url: entry.url,
@@ -133,12 +133,13 @@ export async function processReadingListByAge(): Promise<void> {
     console.debug("リーディングリストの年代に基づく処理を開始します");
 
     const settings = await getStorageSettings();
+    const entries = await getReadingListEntries();
 
     // 既読化処理を実行
-    await markReadingListEntriesAsRead(settings.daysUntilRead);
+    await markReadingListEntriesAsRead(settings.daysUntilRead, entries);
 
     // 削除処理を実行
-    await deleteReadingListEntries(settings.daysUntilDelete);
+    await deleteReadingListEntries(settings.daysUntilDelete, entries);
 
     console.debug("リーディングリストの処理が完了しました");
   } catch (error) {
