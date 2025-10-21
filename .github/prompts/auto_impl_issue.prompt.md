@@ -25,8 +25,8 @@ Planning -> Actionの順に作業してください
   - チェックが成功したら変更をステージングしてください
     - なるべく `git add -u` を使用して変更されたファイルのみステージングしてください
     - 新規ファイルがある場合は `git add <file>` を使用してください
-9. TODOを全て完了したら現在のブランチをpushし、`github` を使用してドラフトモードのpull requestを作成してください
-  - `github` が使えない場合は `gh pr create --draft` を使用してください
+9. TODOを全て完了したら現在のブランチをpushし、`github` を使用してpull requestを作成してください
+  - `github` が使えない場合は `gh pr create` を使用してください
   - pull requestのフォーマットは後述の `pull request format` を参照してください
 
 ## Check commands for after fix code
