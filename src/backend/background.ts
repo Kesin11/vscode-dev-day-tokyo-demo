@@ -2,7 +2,6 @@
 
 /**
  * Reading List エントリを取得する関数
- * @returns Promise<chrome.readingList.ReadingListEntry[]> リーディングリストのエントリ一覧
  */
 export async function getReadingListEntries(): Promise<
   chrome.readingList.ReadingListEntry[]
