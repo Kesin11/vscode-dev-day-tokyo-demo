@@ -91,10 +91,7 @@ function OptionsPage() {
           </div>
 
           <div>
-            <label
-              htmlFor="daysUntilDelete"
-              className="block font-medium mb-2"
-            >
+            <label htmlFor="daysUntilDelete" className="block font-medium mb-2">
               削除までの日数
             </label>
             <input
@@ -122,9 +119,7 @@ function OptionsPage() {
         </button>
 
         {saved && (
-          <p className="text-green-600 text-center mt-3">
-            設定を保存しました
-          </p>
+          <p className="text-green-600 text-center mt-3">設定を保存しました</p>
         )}
       </div>
     </div>

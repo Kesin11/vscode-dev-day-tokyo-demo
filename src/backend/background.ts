@@ -70,9 +70,7 @@ export async function markAsReadIfOlder(
     return !entry.hasBeenRead && ageTime >= thresholdTime;
   });
 
-  console.debug(
-    `${entriesToMarkAsRead.length} 件のエントリを既読化します`,
-  );
+  console.debug(`${entriesToMarkAsRead.length} 件のエントリを既読化します`);
 
   let successCount = 0;
   for (const entry of entriesToMarkAsRead) {
@@ -95,7 +93,7 @@ export async function markAsReadIfOlder(
           );
         } else {
           // 指数バックオフ: 1秒, 2秒, 4秒
-          const waitTime = Math.pow(2, retryCount - 1) * 1000;
+          const waitTime = 2 ** (retryCount - 1) * 1000;
           await new Promise((resolve) => setTimeout(resolve, waitTime));
         }
       }
@@ -143,7 +141,7 @@ export async function deleteIfOlder(
           );
         } else {
           // 指数バックオフ: 1秒, 2秒, 4秒
-          const waitTime = Math.pow(2, retryCount - 1) * 1000;
+          const waitTime = 2 ** (retryCount - 1) * 1000;
           await new Promise((resolve) => setTimeout(resolve, waitTime));
         }
       }
@@ -204,10 +202,7 @@ export function initializeExtension(): void {
     try {
       await processReadingList();
     } catch (error) {
-      console.error(
-        "インストール時の処理でエラーが発生しました:",
-        error,
-      );
+      console.error("インストール時の処理でエラーが発生しました:", error);
     }
   });
 }

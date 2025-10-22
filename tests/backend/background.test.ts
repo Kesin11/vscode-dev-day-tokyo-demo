@@ -149,8 +149,8 @@ describe("Background", () => {
       const result = await markAsReadIfOlder(1);
 
       // 検証
-      expect(result).toBe(2); // エントリ1とエントリ3, 4が対象、エントリ2は既読
-      expect(mockChrome.readingList.updateEntry).toHaveBeenCalledTimes(2);
+      expect(result).toBe(3); // エントリ1, 3, 4が対象（1日以上経過）、エントリ2は既読のためスキップ
+      expect(mockChrome.readingList.updateEntry).toHaveBeenCalledTimes(3);
     });
 
     it("正常系: 対象エントリがない場合は0を返す", async () => {
