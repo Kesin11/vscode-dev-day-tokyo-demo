@@ -1,13 +1,18 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  deleteIfOlder,
   getReadingListEntries,
   initializeExtension,
+  markAsReadIfOlder,
+  processReadingList,
 } from "../../src/backend/background";
 
 // Chrome API のモック
 const mockChrome = {
   readingList: {
     query: vi.fn(),
+    updateEntry: vi.fn(),
+    removeEntry: vi.fn(),
   },
   runtime: {
     onStartup: {
@@ -15,6 +20,11 @@ const mockChrome = {
     },
     onInstalled: {
       addListener: vi.fn(),
+    },
+  },
+  storage: {
+    local: {
+      get: vi.fn(),
     },
   },
 };
@@ -38,6 +48,20 @@ const sampleEntries: chrome.readingList.ReadingListEntry[] = [
     creationTime: Date.now() - 172800000, // 2日前
     lastUpdateTime: Date.now() - 7200000, // 2時間前
   },
+  {
+    title: "テストエントリ3",
+    url: "https://example.com/3",
+    hasBeenRead: false,
+    creationTime: Date.now() - 2592000000, // 30日前
+    lastUpdateTime: Date.now() - 2592000000,
+  },
+  {
+    title: "テストエントリ4",
+    url: "https://example.com/4",
+    hasBeenRead: false,
+    creationTime: Date.now() - 5184000000, // 60日前
+    lastUpdateTime: Date.now() - 5184000000,
+  },
 ];
 
 describe("Background", () => {
@@ -56,7 +80,7 @@ describe("Background", () => {
       // 検証
       expect(mockChrome.readingList.query).toHaveBeenCalledWith({});
       expect(result).toEqual(sampleEntries);
-      expect(result).toHaveLength(2);
+      expect(result).toHaveLength(4);
       expect(result[0]?.title).toBe("テストエントリ1");
       expect(result[1]?.hasBeenRead).toBe(true);
     });
@@ -95,6 +119,160 @@ describe("Background", () => {
         "readingList API is not available",
       );
       expect(mockChrome.readingList.query).toHaveBeenCalledWith({});
+    });
+  });
+
+  describe("markAsReadIfOlder", () => {
+    it("正常系: 指定日数以上経過した未読エントリを既読化できる", async () => {
+      // モックの設定
+      mockChrome.readingList.query.mockResolvedValue(sampleEntries);
+      mockChrome.readingList.updateEntry.mockResolvedValue(undefined);
+
+      // テスト実行
+      const result = await markAsReadIfOlder(30);
+
+      // 検証
+      expect(result).toBe(2); // エントリ3（30日）とエントリ4（60日）が対象
+      expect(mockChrome.readingList.updateEntry).toHaveBeenCalledTimes(2);
+      expect(mockChrome.readingList.updateEntry).toHaveBeenCalledWith({
+        url: "https://example.com/3",
+        hasBeenRead: true,
+      });
+    });
+
+    it("正常系: 既読エントリはスキップされる", async () => {
+      // モックの設定
+      mockChrome.readingList.query.mockResolvedValue(sampleEntries);
+      mockChrome.readingList.updateEntry.mockResolvedValue(undefined);
+
+      // テスト実行
+      const result = await markAsReadIfOlder(1);
+
+      // 検証
+      expect(result).toBe(2); // エントリ1とエントリ3, 4が対象、エントリ2は既読
+      expect(mockChrome.readingList.updateEntry).toHaveBeenCalledTimes(2);
+    });
+
+    it("正常系: 対象エントリがない場合は0を返す", async () => {
+      // モックの設定
+      mockChrome.readingList.query.mockResolvedValue(sampleEntries);
+      mockChrome.readingList.updateEntry.mockResolvedValue(undefined);
+
+      // テスト実行
+      const result = await markAsReadIfOlder(100);
+
+      // 検証
+      expect(result).toBe(0);
+      expect(mockChrome.readingList.updateEntry).not.toHaveBeenCalled();
+    });
+
+    it("異常系: APIエラーが発生した場合、リトライして失敗する", async () => {
+      // モックの設定
+      mockChrome.readingList.query.mockResolvedValue([sampleEntries[3]]);
+      mockChrome.readingList.updateEntry.mockRejectedValue(
+        new Error("API エラー"),
+      );
+
+      // テスト実行
+      const result = await markAsReadIfOlder(30, 2);
+
+      // 検証: リトライされるが失敗数をカウント
+      expect(result).toBe(0);
+      expect(mockChrome.readingList.updateEntry).toHaveBeenCalledTimes(2); // 最大リトライ数
+    });
+  });
+
+  describe("deleteIfOlder", () => {
+    it("正常系: 指定日数以上経過したエントリを削除できる", async () => {
+      // モックの設定
+      mockChrome.readingList.query.mockResolvedValue(sampleEntries);
+      mockChrome.readingList.removeEntry.mockResolvedValue(undefined);
+
+      // テスト実行
+      const result = await deleteIfOlder(60);
+
+      // 検証
+      expect(result).toBe(1); // エントリ4（60日）のみが対象
+      expect(mockChrome.readingList.removeEntry).toHaveBeenCalledTimes(1);
+      expect(mockChrome.readingList.removeEntry).toHaveBeenCalledWith({
+        url: "https://example.com/4",
+      });
+    });
+
+    it("正常系: 対象エントリがない場合は0を返す", async () => {
+      // モックの設定
+      mockChrome.readingList.query.mockResolvedValue(sampleEntries);
+      mockChrome.readingList.removeEntry.mockResolvedValue(undefined);
+
+      // テスト実行
+      const result = await deleteIfOlder(100);
+
+      // 検証
+      expect(result).toBe(0);
+      expect(mockChrome.readingList.removeEntry).not.toHaveBeenCalled();
+    });
+
+    it("異常系: APIエラーが発生した場合、リトライして失敗する", async () => {
+      // モックの設定
+      mockChrome.readingList.query.mockResolvedValue([sampleEntries[3]]);
+      mockChrome.readingList.removeEntry.mockRejectedValue(
+        new Error("API エラー"),
+      );
+
+      // テスト実行
+      const result = await deleteIfOlder(60, 2);
+
+      // 検証: リトライされるが失敗
+      expect(result).toBe(0);
+      expect(mockChrome.readingList.removeEntry).toHaveBeenCalledTimes(2); // 最大リトライ数
+    });
+  });
+
+  describe("processReadingList", () => {
+    it("正常系: 設定に基づいて既読化・削除処理を実行できる", async () => {
+      // モックの設定
+      mockChrome.readingList.query.mockResolvedValue(sampleEntries);
+      mockChrome.storage.local.get.mockResolvedValue({
+        daysUntilRead: 30,
+        daysUntilDelete: 60,
+      });
+      mockChrome.readingList.updateEntry.mockResolvedValue(undefined);
+      mockChrome.readingList.removeEntry.mockResolvedValue(undefined);
+
+      // テスト実行
+      await processReadingList();
+
+      // 検証
+      expect(mockChrome.storage.local.get).toHaveBeenCalledWith([
+        "daysUntilRead",
+        "daysUntilDelete",
+      ]);
+      expect(mockChrome.readingList.query).toHaveBeenCalled();
+      expect(mockChrome.readingList.updateEntry).toHaveBeenCalled();
+      expect(mockChrome.readingList.removeEntry).toHaveBeenCalled();
+    });
+
+    it("正常系: デフォルト設定を使用できる", async () => {
+      // モックの設定
+      mockChrome.readingList.query.mockResolvedValue([]);
+      mockChrome.storage.local.get.mockResolvedValue({}); // デフォルト値を使用
+
+      // テスト実行
+      await processReadingList();
+
+      // 検証
+      expect(mockChrome.storage.local.get).toHaveBeenCalled();
+      expect(mockChrome.readingList.query).toHaveBeenCalled();
+    });
+
+    it("異常系: ストレージアクセスエラーをthrowする", async () => {
+      // モックの設定
+      mockChrome.storage.local.get.mockRejectedValue(
+        new Error("ストレージエラー"),
+      );
+
+      // テスト実行と検証
+      await expect(processReadingList()).rejects.toThrow("ストレージエラー");
     });
   });
 
