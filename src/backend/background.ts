@@ -1,5 +1,8 @@
 // Chrome Extension Background Script for Reading List Management
 
+// 1日のミリ秒数
+const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
+
 /**
  * Reading List エントリを取得する関数
  */
@@ -58,12 +61,9 @@ async function getSettings(): Promise<{
  */
 export async function markEntriesAsRead(daysUntilRead: number): Promise<void> {
   try {
-    console.debug(`${daysUntilRead}日以上前のエントリを既読化します`);
-
     const entries = await getReadingListEntries();
     const now = Date.now();
-    const millisecondsPerDay = 24 * 60 * 60 * 1000;
-    const thresholdTime = now - daysUntilRead * millisecondsPerDay;
+    const thresholdTime = now - daysUntilRead * MILLISECONDS_PER_DAY;
 
     const entriesToMarkAsRead = entries.filter((entry) => {
       return !entry.hasBeenRead && entry.creationTime < thresholdTime;
@@ -94,12 +94,9 @@ export async function markEntriesAsRead(daysUntilRead: number): Promise<void> {
  */
 export async function deleteOldEntries(daysUntilDelete: number): Promise<void> {
   try {
-    console.debug(`${daysUntilDelete}日以上前のエントリを削除します`);
-
     const entries = await getReadingListEntries();
     const now = Date.now();
-    const millisecondsPerDay = 24 * 60 * 60 * 1000;
-    const thresholdTime = now - daysUntilDelete * millisecondsPerDay;
+    const thresholdTime = now - daysUntilDelete * MILLISECONDS_PER_DAY;
 
     const entriesToDelete = entries.filter((entry) => {
       return entry.creationTime < thresholdTime;
@@ -128,13 +125,9 @@ export async function deleteOldEntries(daysUntilDelete: number): Promise<void> {
  */
 export async function processReadingList(): Promise<void> {
   try {
-    console.debug("リーディングリスト処理を開始します");
-
     const settings = await getSettings();
     await markEntriesAsRead(settings.daysUntilRead);
     await deleteOldEntries(settings.daysUntilDelete);
-
-    console.debug("リーディングリスト処理が完了しました");
   } catch (error) {
     console.error("リーディングリスト処理でエラーが発生しました:", error);
     throw error;
